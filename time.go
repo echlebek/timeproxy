@@ -9,9 +9,7 @@ type (
 	Location   = time.Location
 	Month      = time.Month
 	ParseError = time.ParseError
-	Ticker     = time.Ticker
 	Time       = time.Time
-	Timer      = time.Timer
 	Weekday    = time.Weekday
 )
 
@@ -113,7 +111,7 @@ func Sleep(d Duration) {
 }
 
 // NewTicker calls TimeProxy.NewTicker
-func NewTicker(d Duration) *time.Ticker {
+func NewTicker(d Duration) *Ticker {
 	return TimeProxy.NewTicker(d)
 }
 
@@ -142,17 +140,31 @@ func (RealTime) Tick(d Duration) <-chan Time {
 
 // NewTicker calls time.NewTicker
 func (RealTime) NewTicker(d Duration) *Ticker {
-	return time.NewTicker(d)
+	ticker := time.NewTicker(d)
+	return &Ticker{
+		C:        ticker.C,
+		StopFunc: ticker.Stop,
+	}
 }
 
 // AfterFunc calls time.AfterFunc
 func (RealTime) AfterFunc(d Duration, f func()) *Timer {
-	return time.AfterFunc(d, f)
+	timer := time.AfterFunc(d, f)
+	return &Timer{
+		C:         timer.C,
+		ResetFunc: timer.Reset,
+		StopFunc:  timer.Stop,
+	}
 }
 
 // NewTimer calls time.NewTimer
 func (RealTime) NewTimer(d Duration) *Timer {
-	return time.NewTimer(d)
+	timer := time.NewTimer(d)
+	return &Timer{
+		C:         timer.C,
+		ResetFunc: timer.Reset,
+		StopFunc:  timer.Stop,
+	}
 }
 
 // ParseDuration calls time.ParseDuration
@@ -193,4 +205,27 @@ func Date(year int, month Month, day, hour, min, sec, nsec int, loc *Location) T
 // Unix calls time.Unix
 func Unix(sec, nsec int64) Time {
 	return time.Unix(sec, nsec)
+}
+
+type Ticker struct {
+	C        <-chan Time
+	StopFunc func()
+}
+
+func (t *Ticker) Stop() {
+	t.StopFunc()
+}
+
+type Timer struct {
+	C         <-chan Time
+	ResetFunc func(Duration) bool
+	StopFunc  func() bool
+}
+
+func (t *Timer) Reset(d Duration) bool {
+	return t.ResetFunc(d)
+}
+
+func (t *Timer) Stop() bool {
+	return t.StopFunc()
 }
