@@ -247,3 +247,8 @@ func (t *Timer) Stop() bool {
 func Since(t Time) Duration {
 	return TimeProxy.Since(t)
 }
+
+// NewTimer returns TimeProxy.NewTimer
+func NewTimer(d Duration) *Timer {
+	return TimeProxy.NewTimer(d)
+}
