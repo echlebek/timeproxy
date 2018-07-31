@@ -118,6 +118,7 @@ func NewTicker(d Duration) *Ticker {
 // RealTime dispatches all calls to the stdlib time package
 type RealTime struct{}
 
+// Now calls time.Now
 func (RealTime) Now() Time {
 	return time.Now()
 }
@@ -157,7 +158,9 @@ func (RealTime) AfterFunc(d Duration, f func()) *Timer {
 	}
 }
 
-// NewTimer calls time.NewTimer
+// NewTimer calls time.NewTimer. It returns a timeproxy Timer with StopFunc
+// set to the timer's Stop method and ResetFunc set to the timer's Reset
+// method.
 func (RealTime) NewTimer(d Duration) *Timer {
 	timer := time.NewTimer(d)
 	return &Timer{
@@ -207,6 +210,7 @@ func Unix(sec, nsec int64) Time {
 	return time.Unix(sec, nsec)
 }
 
+// Ticker is an abstraction of time.Ticker that can be patched more easily.
 type Ticker struct {
 	C        <-chan Time
 	StopFunc func()
@@ -216,16 +220,19 @@ func (t *Ticker) Stop() {
 	t.StopFunc()
 }
 
+// Timer is an abstraction of time.Timer that can be patched more easily.
 type Timer struct {
 	C         <-chan Time
 	ResetFunc func(Duration) bool
 	StopFunc  func() bool
 }
 
+// Reset calls t.ResetFunc
 func (t *Timer) Reset(d Duration) bool {
 	return t.ResetFunc(d)
 }
 
+// Stop calls t.StopFunc
 func (t *Timer) Stop() bool {
 	return t.StopFunc()
 }
