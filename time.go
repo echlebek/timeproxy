@@ -88,6 +88,7 @@ type Proxy interface {
 	NewTicker(Duration) *Ticker
 	AfterFunc(Duration, func()) *Timer
 	NewTimer(Duration) *Timer
+	Since(Time) Duration
 }
 
 // Now calls TimeProxy.Now
@@ -95,17 +96,17 @@ func Now() Time {
 	return TimeProxy.Now()
 }
 
-// time.Tick calls TimeProxy.Tick
+// Tick calls TimeProxy.Tick
 func Tick(d Duration) <-chan Time {
 	return TimeProxy.Tick(d)
 }
 
-// time.After calls TimeProxy.After
+// After calls TimeProxy.After
 func After(d Duration) <-chan Time {
 	return TimeProxy.After(d)
 }
 
-// time.Sleep calls TimeProxy.Sleep
+// Sleep calls TimeProxy.Sleep
 func Sleep(d Duration) {
 	TimeProxy.Sleep(d)
 }
@@ -168,6 +169,11 @@ func (RealTime) NewTimer(d Duration) *Timer {
 		ResetFunc: timer.Reset,
 		StopFunc:  timer.Stop,
 	}
+}
+
+// Since calls time.Since
+func (RealTime) Since(t Time) Duration {
+	return time.Since(t)
 }
 
 // ParseDuration calls time.ParseDuration
@@ -235,4 +241,9 @@ func (t *Timer) Reset(d Duration) bool {
 // Stop calls t.StopFunc
 func (t *Timer) Stop() bool {
 	return t.StopFunc()
+}
+
+// Since calls TimeProxy.Since
+func Since(t Time) Duration {
+	return TimeProxy.Since(t)
 }
