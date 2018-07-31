@@ -89,6 +89,7 @@ type Proxy interface {
 	AfterFunc(Duration, func()) *Timer
 	NewTimer(Duration) *Timer
 	Since(Time) Duration
+	Until(Time) Duration
 }
 
 // Now calls TimeProxy.Now
@@ -176,6 +177,11 @@ func (RealTime) Since(t Time) Duration {
 	return time.Since(t)
 }
 
+// Until calls time.Until
+func (RealTime) Until(t Time) Duration {
+	return time.Until(t)
+}
+
 // ParseDuration calls time.ParseDuration
 func ParseDuration(s string) (Duration, error) {
 	return time.ParseDuration(s)
@@ -246,6 +252,11 @@ func (t *Timer) Stop() bool {
 // Since calls TimeProxy.Since
 func Since(t Time) Duration {
 	return TimeProxy.Since(t)
+}
+
+// Until calls TimeProxy.Until
+func Until(t Time) Duration {
+	return TimeProxy.Until(t)
 }
 
 // NewTimer returns TimeProxy.NewTimer
